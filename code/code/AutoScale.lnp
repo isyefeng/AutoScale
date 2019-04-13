@@ -1,0 +1,5 @@
+"STARTUP.obj",
+"main.obj",
+"lcd12864.obj" 
+TO "AutoScale" 
+RAMSIZE(256) 
