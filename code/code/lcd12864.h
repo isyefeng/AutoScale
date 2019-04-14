@@ -17,5 +17,6 @@ void lcd_wdat(uchar dat);
 void lcd_pos(uchar X,uchar Y);
 void lcd_init();
 void DisplayString(uchar x, uchar y, uchar* String);
+void DisplayByte(uchar x,uchar y,uchar date);
 
 #endif

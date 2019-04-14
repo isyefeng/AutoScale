@@ -1,5 +1,9 @@
 "STARTUP.obj",
 "main.obj",
-"lcd12864.obj" 
+"lcd12864.obj",
+"ds1302.obj",
+"HX711Drv.obj",
+"iic.obj",
+"Display.obj" 
 TO "AutoScale" 
 RAMSIZE(256) 

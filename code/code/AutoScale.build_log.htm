@@ -4,24 +4,57 @@
 <h1>µVision Build Log</h1>
 <h2>Project:</h2>
 F:\Project\AutoScale\code\code\AutoScale.uvproj
-Project File Date:  04/13/2019
+Project File Date:  04/14/2019
 
 <h2>Output:</h2>
 Build target 'Target 1'
-compiling main.c...
-compiling lcd12864.c...
+compiling Display.c...
 linking...
-Program Size: data=10.0 xdata=0 code=235
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_WRITE_2402?IIC
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_READ_2402?IIC
+Program Size: data=36.1 xdata=0 code=2862
 creating hex file from "AutoScale"...
-"AutoScale" - 0 Error(s), 0 Warning(s).
+"AutoScale" - 0 Error(s), 2 Warning(s).
 </pre>
 </body>
 </html>
-le"...
-"AutoScale" - 0 Error(s), 1 Warning(s).
-CD12864
-Program Size: data=10.0 xdata=0 code=208
-creating hex file from "AutoScale"...
-"AutoScale" - 0 Error(s), 2 Warning(s).
-ta=0 code=198
+AutoScale" - 0 Error(s), 3 Warning(s).
+r(s), 3 Warning(s).
+e from "AutoScale"...
 "AutoScale" - 0 Error(s), 3 Warning(s).
+list
+MAIN.C(11): error C136: 'TL0': 'void' on variable
+MAIN.C(11): error C244: 'TL0': can't initialize, bad type or class
+MAIN.C(11): error C136: 'TL0': 'void' on variable
+MAIN.C(11): error C132: 'TL0': not in formal parameter list
+MAIN.C(12): error C244: 'TH0': can't initialize, bad type or class
+MAIN.C(12): error C132: 'TH0': not in formal parameter list
+MAIN.C(13): error C244: 'TF0': can't initialize, bad type or class
+MAIN.C(13): error C132: 'TF0': not in formal parameter list
+MAIN.C(14): error C244: 'TR0': can't initialize, bad type or class
+MAIN.C(14): error C132: 'TR0': not in formal parameter list
+MAIN.C(15): error C244: 'EA': can't initialize, bad type or class
+MAIN.C(15): error C132: 'EA': not in formal parameter list
+MAIN.C(16): error C244: 'ET0': can't initialize, bad type or class
+MAIN.C(16): error C132: 'ET0': not in formal parameter list
+MAIN.C(17): error C141: syntax error near '}'
+compiling Display.c...
+DISPLAY.H(9): error C100: unprintable character 0xA3 skipped
+DISPLAY.H(9): error C100: unprintable character 0xBB skipped
+DISPLAY.C(4): error C132: 'DspWeight': not in formal parameter list
+DISPLAY.C(4): error C141: syntax error near '{'
+DISPLAY.C(5): error C132: 'DisplayString': not in formal parameter list
+DISPLAY.C(6): error C141: syntax error near '2'
+DISPLAY.C(6): error C132: 'lcd_pos': not in formal parameter list
+DISPLAY.C(7): error C141: syntax error near '/', expected ')'
+DISPLAY.C(7): error C132: '_lcd_wdat': not in formal parameter list
+DISPLAY.C(8): error C141: syntax error near '', expected ')'
+DISPLAY.C(8): error C132: '_lcd_wdat': not in formal parameter list
+DISPLAY.C(9): error C141: syntax error near '', expected ')'
+DISPLAY.C(9): error C132: '_lcd_wdat': not in formal parameter list
+DISPLAY.C(10): error C141: syntax error near '', expected ')'
+DISPLAY.C(10): error C132: '_lcd_wdat': not in formal parameter list
+DISPLAY.C(11): error C141: syntax error near '}'
+Target not created

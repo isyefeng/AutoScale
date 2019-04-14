@@ -1,0 +1,6 @@
+DXP格式用            Altium designer Summer 软件打开 
+protel99格式用   protel99SE 软件打开 
+PDF格式用            PDF 软件打开 
+Word格式用           Word 或用WPS 软件打开 
+
+4种格式的原理图都内容是一样的  只是打开方式不同

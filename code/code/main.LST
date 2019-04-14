@@ -1,40 +1,90 @@
-C51 COMPILER V9.01   MAIN                                                                  04/13/2019 11:13:31 PAGE 1   
+C51 COMPILER V9.01   MAIN                                                                  04/14/2019 14:59:13 PAGE 1   
 
 
 C51 COMPILER V9.01, COMPILATION OF MODULE MAIN
 OBJECT MODULE PLACED IN main.OBJ
-COMPILER INVOKED BY: E:\keil4\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+COMPILER INVOKED BY: E:\keil4\C51\BIN\C51.EXE main.c BROWSE INCDIR(.\drv) DEBUG OBJECTEXTEND TABS(2)
 
 line level    source
 
    1          #include <reg52.h>
    2          #include "include_type.h"
    3          #include "global_driver.h"
-   4          
-   5          void global_driver_init(void)
-   6          {
-   7   1        lcd_init();
-   8   1        DisplayString(0,0,"hello word!");
-   9   1      }
-  10          
-  11          void main(void)
-  12          {
-  13   1        global_driver_init();
-  14   1        while(1)
-  15   1        {
-  16   2          ;
-  17   2        }
-  18   1      }
+   4          #include "Display.h"
+   5          
+   6          bit m_ds_flag = 0;
+   7          
+   8          void Timer0Init(void)   //1000
+   9          {
+  10   1        TMOD |= 0x01;   
+  11   1        TL0 = (65535-1000)%256; 
+  12   1        TH0 = (65535-1000)/256; 
+  13   1        TF0 = 0;    
+  14   1        TR0 = 1;  
+  15   1        EA = 1;
+  16   1        ET0 = 1;
+  17   1      }
+  18          
+  19          void global_driver_init(void)
+  20          {
+  21   1        uchar set_date[] = {19,4,14};
+  22   1        uchar set_time[] = {23,59,55};
+  23   1        Timer0Init(); 
+  24   1        lcd_init();
+  25   1        ModeInitDisplay();
+  26   1        Ds1302_Date_set(set_date);
+  27   1        Ds1302_time_set(set_time);
+  28   1        Delay_ms(3000);
+  29   1        lcd_wcmd(0x01); //Çå³ý¿ª»úÆÁÄ»
+  30   1        Get_Maopi();
+  31   1        DspTimetip();
+  32   1      }
+  33          
+  34          void main(void)
+  35          {
+  36   1        unsigned char timebuf[3] = {10,10,10};
+  37   1        unsigned char Datebuf[3] = {0,0,0};
+  38   1        global_driver_init();
+  39   1        while(1)
+  40   1        {
+  41   2          if(m_ds_flag)
+  42   2          {
+  43   3            Ds1302_Date_read(Datebuf);
+  44   3            Ds1302_time_read(timebuf);
+  45   3            DspTime(Datebuf,timebuf);
+  46   3            DspWeight();
+  47   3            Get_Weight();
+  48   3            m_ds_flag = 0;
+  49   3          }
+  50   2          
+  51   2        }
+  52   1      }
+  53          
+  54          void Tim0(void) interrupt 1
+  55          {
+C51 COMPILER V9.01   MAIN                                                                  04/14/2019 14:59:13 PAGE 2   
+
+  56   1        static uint ds_index = 0;
+  57   1        TL0 = (65535-1000)%256; 
+  58   1        TH0 = (65535-1000)/256; 
+  59   1        ds_index++;
+  60   1        if(ds_index == 300)
+  61   1        {
+  62   2          ds_index = 0;
+  63   2          m_ds_flag = 1;
+  64   2        }
+  65   1        
+  66   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =     20    ----
+   CODE SIZE        =    230    ----
    CONSTANT SIZE    =     12    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =   ----    ----
+   DATA SIZE        =      2      12
    IDATA SIZE       =   ----    ----
-   BIT SIZE         =   ----    ----
+   BIT SIZE         =      1    ----
 END OF MODULE INFORMATION.
 
 

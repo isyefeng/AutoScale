@@ -2,6 +2,7 @@
 #define	__INCLUDE_TYPE_H__
 
 #include <reg52.h>
+#include <intrins.h>
 
 typedef unsigned char uchar;
 typedef unsigned int uint;

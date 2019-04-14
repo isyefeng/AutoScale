@@ -1,0 +1,306 @@
+C51 COMPILER V9.01   压力感应报綺_数_牍_                                                   09/22/2016 00:11:38 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE 压力感应报綺_数_牍_
+OBJECT MODULE PLACED IN 压力感应报警 数码管.OBJ
+COMPILER INVOKED BY: D:\Program Files (x86)\KEIL4\C51\BIN\C51.EXE 压力感应报警 数码管.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include <reg52.h>               //调用单片机头文件
+   2          #define uchar unsigned char  //无符号字符型 宏定义      变量范围0~255
+   3          #define uint  unsigned int       //无符号整型 宏定义    变量范围0~65535
+   4          #include <intrins.h>
+   5          
+   6          //数码管段选定义      0     1    2    3    4    5       6        7        8        9    
+   7          uchar code smg_du[]={0x28,0xe1,0x32,0xa2,0x54,0xa1,0x21,0xea,0x20,0xa0,
+   8                                                   0x60,0x25,0x39,0x26,0x31,0x71,0xff};    //断码
+   9          //数码管位选定义
+  10          uchar code smg_we[]={0xef,0xdf,0xbf,0x7f};
+  11          uchar dis_smg[8] = {0}; 
+  12          uchar smg_i = 4;    //显示数码管的个位数
+  13          sbit beep = P2^3;   //蜂鸣器IO口定义
+  14          
+  15          bit flag_lj_en;          //按键连加使能
+  16          bit flag_lj_3_en;        //按键连3次连加后使能  加的数就越大了 
+  17          uchar key_time,key_value;      //用做连加的中间变量
+  18          bit key_500ms  ;
+  19          
+  20          bit flag_300ms ;
+  21          uchar menu_1;       //菜单设计的变量
+  22          uint t_high = 300;         //上限报警值 
+  23          
+  24          sbit hx711_dout=P2^7; 
+  25          sbit hx711_sck=P2^6; 
+  26          
+  27          long weight;
+  28          
+  29          unsigned long HX711_Buffer = 0;
+  30          unsigned long Weight_Maopi = 0;
+  31          
+  32          uint temp,qi_weight;
+  33          bit chaozhong_flag;
+  34          bit leiji_flag;
+  35          uchar flag_200ms ;
+  36          
+  37          #define GapValue 437.0
+  38          
+  39          uint temp,qi_weight;
+  40          bit chaozhong_flag;
+  41          bit leiji_flag;
+  42          
+  43          /***********************1ms延时函数*****************************/
+  44          void delay_1ms(uint q)
+  45          {
+  46   1              uint i,j;
+  47   1              for(i=0;i<q;i++)
+  48   1                      for(j=0;j<120;j++);
+  49   1      }
+  50          
+  51          /***********************数码显示函数*****************************/
+  52          void display()
+  53          {
+  54   1              static uchar i;   
+  55   1              i++;
+C51 COMPILER V9.01   压力感应报綺_数_牍_                                                   09/22/2016 00:11:38 PAGE 2   
+
+  56   1              if(i >= smg_i)
+  57   1                      i = 0;  
+  58   1              P1 = 0xff;                       //消隐 
+  59   1              P3 = smg_we[i];                  //位选
+  60   1              P1 = dis_smg[i];                 //段选         
+  61   1      }
+  62          
+  63          
+  64          /*************定时器0初始化程序***************/
+  65          void time_init()          
+  66          {
+  67   1              EA   = 1;                 //开总中断
+  68   1              TMOD = 0X01;      //定时器0、定时器1工作方式1
+  69   1              ET0  = 1;                 //开定时器0中断 
+  70   1              TR0  = 1;                 //允许定时器0定时
+  71   1      }
+  72          
+  73          /********************独立按键程序*****************/
+  74          uchar key_can;   //按键值
+  75          
+  76          void key()       //独立按键程序
+  77          {
+  78   1              static uchar key_new;
+  79   1              key_can = 20;                   //按键值还原
+  80   1              P2 |= 0x07;
+  81   1              if((P2 & 0x07) != 0x07)         //按键按下
+  82   1              {
+  83   2                      if(key_500ms == 1)      //连加
+  84   2                      {
+  85   3                              key_500ms = 0;
+  86   3                              key_new = 1;
+  87   3                      }
+  88   2                      delay_1ms(1);           //按键消抖动
+  89   2                      if(((P2 & 0x07) != 0x07) && (key_new == 1))
+  90   2                      {                                               //确认是按键按下
+  91   3                              key_new = 0;
+  92   3                              switch(P2 & 0x07)
+  93   3                              {
+  94   4                                      case 0x06: key_can = 3; break;     //得到k2键值
+  95   4                                      case 0x05: key_can = 2; break;     //得到k3键值
+  96   4                                      case 0x03: key_can = 1; break;     //得到k4键值
+  97   4                              }
+  98   3                              flag_lj_en = 1;  //连加使能
+  99   3                      }                       
+ 100   2              }
+ 101   1              else 
+ 102   1              {
+ 103   2                      if(key_new == 0)
+ 104   2                      {
+ 105   3                              key_new = 1;
+ 106   3                              flag_lj_en = 0;         //关闭连加使能
+ 107   3                              flag_lj_3_en = 0;       //关闭3秒后使能
+ 108   3                              key_value = 0;          //清零
+ 109   3                              key_time = 0;
+ 110   3                              key_500ms = 0;
+ 111   3                      }
+ 112   2              }       
+ 113   1      }
+ 114          
+ 115          /****************按键处理数码管显示函数***************/
+ 116          void key_with()
+ 117          {
+C51 COMPILER V9.01   压力感应报綺_数_牍_                                                   09/22/2016 00:11:38 PAGE 3   
+
+ 118   1              if(key_can == 1)          //设置键
+ 119   1              {
+ 120   2                      menu_1 ++;
+ 121   2                      if(menu_1 >= 2)
+ 122   2                      {
+ 123   3                              menu_1 = 0;
+ 124   3                              smg_i = 4;                //数码管显示3位
+ 125   3                              flag_300ms = 1;
+ 126   3                      }
+ 127   2              }
+ 128   1              if(menu_1 == 1)                 //设置高温报警
+ 129   1              {
+ 130   2                      smg_i = 4;                //数码管显示4位
+ 131   2                      if(key_can == 2)
+ 132   2                      {
+ 133   3                              if(flag_lj_3_en == 0)
+ 134   3                                      t_high += 10 ;          //按键按下未松开自动加三次      
+ 135   3                              else 
+ 136   3                                      t_high += 100;  //按键按下未松开自动加三次之后每次自动加10
+ 137   3                              if(t_high > 9990)
+ 138   3                                      t_high = 9990;
+ 139   3                      }
+ 140   2                      if(key_can == 3)
+ 141   2                      {
+ 142   3                              if(flag_lj_3_en == 0)
+ 143   3                                      t_high -= 10 ;          //按键按下未松开自动减三次      
+ 144   3                              else 
+ 145   3                                      t_high -= 100;  //按键按下未松开自动减三次之后每次自动减10
+ 146   3                              if(t_high <= 10)
+ 147   3                                      t_high = 10;
+ 148   3                      }
+ 149   2                      dis_smg[0] = smg_du[t_high / 10 % 10];             //取小数显示
+ 150   2                      dis_smg[1] = smg_du[t_high / 100 % 10] ;  //取个位显示
+ 151   2                      dis_smg[2] = smg_du[t_high / 1000 % 10] & 0xdf;    //取十位显示
+ 152   2                      dis_smg[3] = 0x64;       //H
+ 153   2              }       
+ 154   1      }  
+ 155          
+ 156          /****************报警函数***************/
+ 157          void clock_h_l()
+ 158          {
+ 159   1              static uchar value;
+ 160   1              if(weight >= t_high)
+ 161   1              {
+ 162   2                      value ++;  //消除实际距离在设定距离左右变化时的干扰
+ 163   2                      if(value >= 2)
+ 164   2                      {
+ 165   3                              beep = ~beep;     //蜂鸣器报警                  
+ 166   3                      }       
+ 167   2              }
+ 168   1              else
+ 169   1              {
+ 170   2                      beep = 1;       
+ 171   2              }                       
+ 172   1      }
+ 173          
+ 174          
+ 175          void Delay__hx711_us(void)
+ 176          {
+ 177   1              _nop_();
+ 178   1              _nop_();
+ 179   1      }
+C51 COMPILER V9.01   压力感应报綺_数_牍_                                                   09/22/2016 00:11:38 PAGE 4   
+
+ 180          
+ 181          unsigned long HX711_Read(void)  //增益128
+ 182          {
+ 183   1              unsigned long count; 
+ 184   1              unsigned char i; 
+ 185   1              hx711_sck=0; 
+ 186   1              Delay__hx711_us();
+ 187   1              hx711_dout=1; 
+ 188   1              while(hx711_dout==0); 
+ 189   1              for(i=0;i<24;i++)
+ 190   1              { 
+ 191   2                      hx711_sck=0; 
+ 192   2                      count=count<<1; 
+ 193   2                      hx711_sck=1; 
+ 194   2                      if(hx711_dout)
+ 195   2                              count++; 
+ 196   2              } 
+ 197   1              hx711_sck=1; 
+ 198   1          count=count^0x8000;//下降沿来时，转换数据
+ 199   1              Delay__hx711_us();
+ 200   1              hx711_sck=0;  
+ 201   1              return(count);
+ 202   1      }
+ 203          
+ 204          void get_weight()         //获取被测物体重量
+ 205          {
+ 206   1              weight = HX711_Read();
+ 207   1              weight = weight - Weight_Maopi;         //获取净重
+ 208   1              if(weight > 0)                  
+ 209   1              {       
+ 210   2                      weight = (unsigned int)((float)weight/GapValue);        //计算实物的实际重量                                                                                                                                    
+ 211   2              }
+ 212   1              else
+ 213   1              {
+ 214   2                      weight = 0;
+ 215   2              }
+ 216   1      }
+ 217          
+ 218          
+ 219          /****************主函数***************/
+ 220          void main()
+ 221          {
+ 222   1              time_init();                    //初始化定时器 
+ 223   1              while(1)
+ 224   1              {               
+ 225   2                      key();                                  //按键程序
+ 226   2                      if(key_can < 10)
+ 227   2                      {
+ 228   3                              key_with();                     //设置报警压力  
+ 229   3                      }
+ 230   2                      if(flag_300ms == 1)         //300ms 处理一次压力程序
+ 231   2                      {          
+ 232   3                              flag_300ms = 0; 
+ 233   3                              get_weight();     //获取被测物体重量
+ 234   3                              clock_h_l();        //报警函数
+ 235   3                              if(menu_1 == 0)
+ 236   3                              {       
+ 237   4                                      smg_i = 4;
+ 238   4                                      dis_smg[0] = smg_du[weight % 10];        //取压力的小数显示
+ 239   4                                      dis_smg[1] = smg_du[weight / 10 % 10] ; //取压力的个位显示
+ 240   4                                      dis_smg[2] = smg_du[weight / 100 % 10] ;           //取压力的十位显示
+ 241   4                                      dis_smg[3] = smg_du[weight / 1000 % 10] & 0xdf;    //取压力的百位显示
+C51 COMPILER V9.01   压力感应报綺_数_牍_                                                   09/22/2016 00:11:38 PAGE 5   
+
+ 242   4                              }
+ 243   3                      }
+ 244   2                      display();              //数码管显示函数
+ 245   2              }
+ 246   1      }
+ 247          
+ 248          /*************定时器0中断服务程序***************/
+ 249          void time0_int() interrupt 1
+ 250          {       
+ 251   1              static uchar value;                      //定时2ms中断一次
+ 252   1              TH0 = 0xf8;
+ 253   1              TL0 = 0x30;     //2ms
+ 254   1              value++;          
+ 255   1              if(value >= 100)
+ 256   1              {
+ 257   2                      value = 0;        
+ 258   2                      flag_300ms = 1;
+ 259   2              }
+ 260   1              if(flag_lj_en == 1)        //按下按键使能
+ 261   1              {
+ 262   2                      key_time ++;
+ 263   2                      if(key_time >= 250) //500ms
+ 264   2                      {
+ 265   3                              key_time = 0;
+ 266   3                              key_500ms = 1; //500ms
+ 267   3                              key_value ++;
+ 268   3                              if(key_value > 3)
+ 269   3                              {
+ 270   4                                      key_value = 10;
+ 271   4                                      flag_lj_3_en = 1; //3次后1.5秒连加大些
+ 272   4                              }                                               
+ 273   3                      }
+ 274   2              }
+ 275   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    875    ----
+   CONSTANT SIZE    =     21    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     36       4
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      6    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

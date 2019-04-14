@@ -227,7 +227,7 @@
               <RCB>
                 <Type>0</Type>
                 <StartAddress>0x0</StartAddress>
-                <Size>0x10000</Size>
+                <Size>0xffff</Size>
               </RCB>
               <RXB>
                 <Type>0</Type>
@@ -308,7 +308,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath></IncludePath>
+              <IncludePath>.\drv</IncludePath>
             </VariousControls>
           </C51>
           <Ax51>
@@ -374,6 +374,26 @@
               <FileName>lcd12864.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\lcd12864.c</FilePath>
+            </File>
+            <File>
+              <FileName>ds1302.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\drv\ds1302.c</FilePath>
+            </File>
+            <File>
+              <FileName>HX711Drv.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\HX711Drv.c</FilePath>
+            </File>
+            <File>
+              <FileName>iic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\drv\iic.c</FilePath>
+            </File>
+            <File>
+              <FileName>Display.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Display.c</FilePath>
             </File>
           </Files>
         </Group>
