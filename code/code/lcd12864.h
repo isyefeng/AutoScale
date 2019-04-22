@@ -12,6 +12,7 @@ sbit LCD_EN  =  P2^2;            //液晶使能控制
 sbit LCD_PSB =  P2^3;            //串/并方式控制
 
 bit lcd_busy();
+void delay(int ms);
 void lcd_wcmd(uchar cmd);
 void lcd_wdat(uchar dat);
 void lcd_pos(uchar X,uchar Y);

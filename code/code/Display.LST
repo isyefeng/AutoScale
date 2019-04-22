@@ -1,4 +1,4 @@
-C51 COMPILER V9.01   DISPLAY                                                               04/14/2019 15:08:51 PAGE 1   
+C51 COMPILER V9.01   DISPLAY                                                               04/21/2019 20:21:20 PAGE 1   
 
 
 C51 COMPILER V9.01, COMPILATION OF MODULE DISPLAY
@@ -19,51 +19,123 @@ line level    source
   10   1        lcd_wdat(Weight_Shiwu%10 + '0');
   11   1      }
   12          
-  13          void DspTimetip(void)
+  13          void DspClear(void)
   14          {
-  15   1        DisplayString(0,0,"Date: 20");
-  16   1        DisplayString(1,0,"Time:");
+  15   1        lcd_wcmd(0x01);      //清除LCD的显示内容
+  16   1        delay(10);
   17   1      }
   18          
-  19          void DspTime(uchar* date,uchar* time)
+  19          void DspTimetip(void)
   20          {
-  21   1        lcd_pos(0,4);
-  22   1        lcd_wdat(date[0]/10+'0');
-  23   1        lcd_wdat(date[0]%10+'0');
-  24   1        lcd_wdat(':');
-  25   1        lcd_wdat(date[1]/10+'0');
-  26   1        lcd_wdat(date[1]%10+'0');
-  27   1        lcd_wdat(':');
-  28   1        lcd_wdat(date[2]/10+'0');
-  29   1        lcd_wdat(date[2]%10+'0');
-  30   1        
-  31   1        lcd_pos(1,3);
-  32   1        lcd_wdat(time[0]/10+'0');
-  33   1        lcd_wdat(time[0]%10+'0');
-  34   1        lcd_wdat(':');
-  35   1        lcd_wdat(time[1]/10+'0');
-  36   1        lcd_wdat(time[1]%10+'0');
-  37   1        lcd_wdat(':');
-  38   1        lcd_wdat(time[2]/10+'0');
-  39   1        lcd_wdat(time[2]%10+'0');
-  40   1      }
-  41          
-  42          void ModeInitDisplay(void)
-  43          {
-  44   1        DisplayString(0,0,"欢迎使用！");
-  45   1        DisplayString(1,0,"智能电子秤");
-  46   1      }
+  21   1        DisplayString(0,0,"Date: 20");
+  22   1        DisplayString(1,0,"Time:");
+  23   1        DisplayString(3,0,"K1储存    K2查询");
+  24   1      }
+  25          
+  26          void DspTime(uchar* date,uchar* time)
+  27          {
+  28   1        lcd_pos(0,4);
+  29   1        lcd_wdat(date[0]/10+'0');
+  30   1        lcd_wdat(date[0]%10+'0');
+  31   1        lcd_wdat('/');
+  32   1        lcd_wdat(date[1]/10+'0');
+  33   1        lcd_wdat(date[1]%10+'0');
+  34   1        lcd_wdat('/');
+  35   1        lcd_wdat(date[2]/10+'0');
+  36   1        lcd_wdat(date[2]%10+'0');
+  37   1        
+  38   1        lcd_pos(1,3);
+  39   1        lcd_wdat(time[0]/10+'0');
+  40   1        lcd_wdat(time[0]%10+'0');
+  41   1        lcd_wdat(':');
+  42   1        lcd_wdat(time[1]/10+'0');
+  43   1        lcd_wdat(time[1]%10+'0');
+  44   1        lcd_wdat(':');
+  45   1        lcd_wdat(time[2]/10+'0');
+  46   1        lcd_wdat(time[2]%10+'0');
+  47   1      }
+  48          
+  49          void ModeInitDisplay(void)
+  50          {
+  51   1        DisplayString(0,0,"欢迎使用！");
+  52   1        DisplayString(1,0,"智能电子秤");
+  53   1      }
+  54          
+  55          void DspUserMode(void)
+C51 COMPILER V9.01   DISPLAY                                                               04/21/2019 20:21:20 PAGE 2   
+
+  56          {
+  57   1        DspClear();
+  58   1        DisplayString(0,0,"请选择要储存的用");
+  59   1        DisplayString(1,0,"户：用户");
+  60   1        DisplayString(2,0,"K1：下一页");
+  61   1        DisplayString(3,0,"K2：确认");
+  62   1      }
+  63          
+  64          void DspUserCheak(void)
+  65          {
+  66   1        DspClear();
+  67   1        DisplayString(0,0,"请选择要查看的用");
+  68   1        DisplayString(1,0,"户：用户");
+  69   1        DisplayString(2,0,"K1：下一页");
+  70   1        DisplayString(3,0,"K2：确认");
+  71   1      }
+  72          
+  73          void DspUserxInfo(uchar* temp, uchar user, char num)
+  74          {
+  75   1        long wigth_buf = 0;
+  76   1        DspClear();
+  77   1        DisplayString(0,0,"用户      上  次");
+  78   1        DisplayString(2,0,"本次称重：");
+  79   1        DisplayString(3,0,"上次称重：");
+  80   1        DisplayString(1,0,"20");
+  81   1        lcd_pos(0,2);
+  82   1        lcd_wdat(user+'0');
+  83   1        lcd_pos(0,6);
+  84   1        lcd_wdat(num+1+'0');
+  85   1        
+  86   1        lcd_pos(1,0);
+  87   1        lcd_wdat('2');
+  88   1        lcd_wdat('0');
+  89   1        lcd_wdat(temp[1]/10+'0');
+  90   1        lcd_wdat(temp[1]%10+'0');
+  91   1        lcd_wdat('/');
+  92   1        lcd_wdat(temp[2]/10+'0');
+  93   1        lcd_wdat(temp[2]%10+'0');
+  94   1        lcd_wdat('/');
+  95   1        lcd_wdat(temp[3]/10+'0');
+  96   1        lcd_wdat(temp[3]%10+'0');
+  97   1        lcd_pos(1,6);
+  98   1        lcd_wdat(temp[4]/10+'0');
+  99   1        lcd_wdat(temp[4]%10+'0');
+ 100   1        DisplayString(1,7,"时");
+ 101   1        
+ 102   1        lcd_pos(2,5);
+ 103   1        lcd_wdat(Weight_Shiwu/1000 + '0');
+ 104   1        lcd_wdat(Weight_Shiwu%1000/100 + '0');
+ 105   1        lcd_wdat(Weight_Shiwu%100/10 + '0');
+ 106   1        lcd_wdat(Weight_Shiwu%10 + '0');
+ 107   1        lcd_wdat('g');
+ 108   1        wigth_buf |= temp[5];
+ 109   1        wigth_buf = (wigth_buf<<8)|temp[6];
+ 110   1        lcd_pos(3,5);
+ 111   1        lcd_wdat(wigth_buf/1000 + '0');
+ 112   1        lcd_wdat(wigth_buf%1000/100 + '0');
+ 113   1        lcd_wdat(wigth_buf%100/10 + '0');
+ 114   1        lcd_wdat(wigth_buf%10 + '0');
+ 115   1        lcd_wdat('g');
+ 116   1      }
+
+C51 COMPILER V9.01   DISPLAY                                                               04/21/2019 20:21:20 PAGE 3   
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    506    ----
-   CONSTANT SIZE    =     49    ----
+   CODE SIZE        =   1346    ----
+   CONSTANT SIZE    =    174    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =   ----       6
+   DATA SIZE        =   ----      15
    IDATA SIZE       =   ----    ----
-C51 COMPILER V9.01   DISPLAY                                                               04/14/2019 15:08:51 PAGE 2   
-
    BIT SIZE         =   ----    ----
 END OF MODULE INFORMATION.
 

@@ -1,4 +1,4 @@
-C51 COMPILER V9.01   HX711DRV                                                              04/14/2019 14:38:53 PAGE 1   
+C51 COMPILER V9.01   HX711DRV                                                              04/21/2019 20:21:19 PAGE 1   
 
 
 C51 COMPILER V9.01, COMPILATION OF MODULE HX711DRV
@@ -11,84 +11,83 @@ line level    source
    2          
    3          #define GapValue 437
    4          sbit Buzzer = P2^3;
-   5          sbit LED = P1^0;
-   6          
-   7          unsigned long HX711_Buffer = 0;
-   8          unsigned long Weight_Maopi = 0;
-   9          long Weight_Shiwu = 0;
+   5          
+   6          unsigned long HX711_Buffer = 0;
+   7          unsigned long Weight_Maopi = 0;
+   8          long Weight_Shiwu = 0;
+   9          
   10          
-  11          
-  12          void Delay__hx711_us(void)
-  13          {
+  11          void Delay__hx711_us(void)
+  12          {
+  13   1        _nop_();
   14   1        _nop_();
-  15   1        _nop_();
-  16   1      }
-  17          
-  18          unsigned long HX711_Read(void)  //增益128
-  19          {
-  20   1        unsigned long count; 
-  21   1        unsigned char i; 
-  22   1        HX711_DOUT=1; 
-  23   1        Delay__hx711_us();
-  24   1          HX711_SCK=0; 
-  25   1        count = 0;
-  26   1          while(HX711_DOUT); 
-  27   1          for(i=0;i<24;i++)
-  28   1        { 
-  29   2          HX711_SCK=1; 
-  30   2            count=count<<1; 
-  31   2          HX711_SCK=0; 
-  32   2            if(HX711_DOUT)
-  33   2            count++; 
-  34   2        } 
-  35   1        HX711_SCK=1; 
-  36   1          count=count^0x800000;//第25个脉冲下降沿来时，转换数据
-  37   1          Delay__hx711_us();
-  38   1        HX711_SCK=0;  
-  39   1        return(count);
-  40   1      }
+  15   1      }
+  16          
+  17          unsigned long HX711_Read(void)  //增益128
+  18          {
+  19   1        unsigned long count; 
+  20   1        unsigned char i; 
+  21   1        HX711_DOUT=1; 
+  22   1        Delay__hx711_us();
+  23   1          HX711_SCK=0; 
+  24   1        count = 0;
+  25   1          while(HX711_DOUT); 
+  26   1          for(i=0;i<24;i++)
+  27   1        { 
+  28   2          HX711_SCK=1; 
+  29   2            count=count<<1; 
+  30   2          HX711_SCK=0; 
+  31   2            if(HX711_DOUT)
+  32   2            count++; 
+  33   2        } 
+  34   1        HX711_SCK=1; 
+  35   1          count=count^0x800000;//第25个脉冲下降沿来时，转换数据
+  36   1          Delay__hx711_us();
+  37   1        HX711_SCK=0;  
+  38   1        return(count);
+  39   1      }
+  40          
   41          
   42          
   43          
-  44          
-  45          //****************************************************
-  46          //称重
-  47          //****************************************************
-  48          void Get_Weight()
-  49          {
-  50   1        Weight_Shiwu = HX711_Read();
-  51   1        Weight_Shiwu = Weight_Shiwu - Weight_Maopi;   //获取净重
-  52   1        if(Weight_Shiwu > 0)      
-  53   1        { 
-  54   2          Weight_Shiwu = (unsigned int)((float)Weight_Shiwu/GapValue);  //计算实物的实际重量
-  55   2        }
-C51 COMPILER V9.01   HX711DRV                                                              04/14/2019 14:38:53 PAGE 2   
+  44          //****************************************************
+  45          //称重
+  46          //****************************************************
+  47          void Get_Weight()
+  48          {
+  49   1        Weight_Shiwu = HX711_Read();
+  50   1        Weight_Shiwu = Weight_Shiwu - Weight_Maopi;   //获取净重
+  51   1        if(Weight_Shiwu > 0)      
+  52   1        { 
+  53   2          Weight_Shiwu = (unsigned int)((float)Weight_Shiwu/GapValue);  //计算实物的实际重量
+  54   2        }
+  55   1        else
+C51 COMPILER V9.01   HX711DRV                                                              04/21/2019 20:21:19 PAGE 2   
 
-  56   1        else
-  57   1        {
-  58   2          Weight_Shiwu = 0;
-  59   2        }
-  60   1        
-  61   1      }
-  62          
-  63          //****************************************************
-  64          //获取毛皮重量
-  65          //****************************************************
-  66          void Get_Maopi()
-  67          {
-  68   1        Weight_Maopi = HX711_Read();  
-  69   1      } 
-  70          
-  71          //****************************************************
-  72          //MS延时函数(12M晶振下测试)
-  73          //****************************************************
-  74          void Delay_ms(unsigned int n)
-  75          {
-  76   1        unsigned int  i,j;
-  77   1        for(i=0;i<n;i++)
-  78   1          for(j=0;j<123;j++);
-  79   1      }
-  80          
+  56   1        {
+  57   2          Weight_Shiwu = 0;
+  58   2        }
+  59   1        
+  60   1      }
+  61          
+  62          //****************************************************
+  63          //获取毛皮重量
+  64          //****************************************************
+  65          void Get_Maopi()
+  66          {
+  67   1        Weight_Maopi = HX711_Read();  
+  68   1      } 
+  69          
+  70          //****************************************************
+  71          //MS延时函数(12M晶振下测试)
+  72          //****************************************************
+  73          void Delay_ms(unsigned int n)
+  74          {
+  75   1        unsigned int  i,j;
+  76   1        for(i=0;i<n;i++)
+  77   1          for(j=0;j<123;j++);
+  78   1      }
+  79          
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE

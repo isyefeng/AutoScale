@@ -8,5 +8,9 @@ void DspTimetip(void);
 void DspWeight(void);
 void DspTime(uchar* date,uchar* time);
 void ModeInitDisplay(void);
+void DspClear(void);		//Çå³ýÆÁÄ»
+void DspUserMode(void);
+void DspUserCheak(void);
+void DspUserxInfo(uchar* temp, uchar user, char num);
 
 #endif

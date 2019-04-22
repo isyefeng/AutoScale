@@ -1,14 +1,10 @@
-/*
-  程序说明: IIC总线驱动程序
-  软件环境: Keil uVision 4.10 
-  硬件环境: CT107单片机综合实训平台(12MHz)
-  日    期: 2011-8-9
-*/
-
 #include "iic.h"
 
 void Delay_iic()
 {
+//	unsigned char i;
+//	for(i=0;i<5;i++)
+//	{_nop_();}
 	unsigned char i;
 
 	_nop_();
@@ -147,4 +143,3 @@ unsigned char Read_2402(unsigned char addr)
 
 	return temp;
 }
-

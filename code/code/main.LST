@@ -1,4 +1,4 @@
-C51 COMPILER V9.01   MAIN                                                                  04/14/2019 14:59:13 PAGE 1   
+C51 COMPILER V9.01   MAIN                                                                  04/21/2019 20:21:18 PAGE 1   
 
 
 C51 COMPILER V9.01, COMPILATION OF MODULE MAIN
@@ -12,77 +12,324 @@ line level    source
    3          #include "global_driver.h"
    4          #include "Display.h"
    5          
-   6          bit m_ds_flag = 0;
-   7          
-   8          void Timer0Init(void)   //1000
-   9          {
-  10   1        TMOD |= 0x01;   
-  11   1        TL0 = (65535-1000)%256; 
-  12   1        TH0 = (65535-1000)/256; 
-  13   1        TF0 = 0;    
-  14   1        TR0 = 1;  
-  15   1        EA = 1;
-  16   1        ET0 = 1;
-  17   1      }
-  18          
-  19          void global_driver_init(void)
-  20          {
-  21   1        uchar set_date[] = {19,4,14};
-  22   1        uchar set_time[] = {23,59,55};
-  23   1        Timer0Init(); 
-  24   1        lcd_init();
-  25   1        ModeInitDisplay();
-  26   1        Ds1302_Date_set(set_date);
-  27   1        Ds1302_time_set(set_time);
-  28   1        Delay_ms(3000);
-  29   1        lcd_wcmd(0x01); //清除开机屏幕
-  30   1        Get_Maopi();
-  31   1        DspTimetip();
-  32   1      }
-  33          
-  34          void main(void)
-  35          {
-  36   1        unsigned char timebuf[3] = {10,10,10};
-  37   1        unsigned char Datebuf[3] = {0,0,0};
-  38   1        global_driver_init();
-  39   1        while(1)
-  40   1        {
-  41   2          if(m_ds_flag)
-  42   2          {
-  43   3            Ds1302_Date_read(Datebuf);
-  44   3            Ds1302_time_read(timebuf);
-  45   3            DspTime(Datebuf,timebuf);
-  46   3            DspWeight();
-  47   3            Get_Weight();
-  48   3            m_ds_flag = 0;
-  49   3          }
-  50   2          
-  51   2        }
+   6          sbit LED8 = P1^7;
+   7          bit m_ds_flag = 0;
+   8          uchar m_save_num = 0;
+   9          unsigned char timebuf[3] = {10,10,10};
+  10          unsigned char Datebuf[3] = {0,0,0};
+  11          
+  12          void Timer0Init(void)   //1000
+  13          {
+  14   1        TMOD |= 0x01;   
+  15   1        TL0 = (65535-1000)%256; 
+  16   1        TH0 = (65535-1000)/256; 
+  17   1        TF0 = 0;    
+  18   1        TR0 = 1;  
+  19   1        EA = 1;
+  20   1        ET0 = 1;
+  21   1      }
+  22          
+  23          void global_driver_init(void)
+  24          {
+  25   1        uchar set_date[] = {19,4,14};
+  26   1        uchar set_time[] = {23,59,55};
+  27   1        Timer0Init(); 
+  28   1        lcd_init();
+  29   1        ModeInitDisplay();
+  30   1        Ds1302_Date_set(set_date);
+  31   1        Ds1302_time_set(set_time);
+  32   1        Delay_ms(3000);
+  33   1        lcd_wcmd(0x01); //清除开机屏幕
+  34   1        Get_Maopi();
+  35   1        DspTimetip();
+  36   1      }
+  37          
+  38          uchar get_save_addres(uchar user)
+  39          {
+  40   1        return ((user-1)*3*7);
+  41   1      }
+  42          
+  43          void DspSavenow(uchar temp)
+  44          {
+  45   1        DspClear();
+  46   1        DisplayString(0,0,"储存中");
+  47   1        DisplayString(1,0,"第  条");
+  48   1        lcd_pos(1,1);
+  49   1        lcd_wdat(temp+1+'0');
+  50   1        Delay_ms(1000);
+  51   1        DspClear();
   52   1      }
   53          
-  54          void Tim0(void) interrupt 1
+  54          void save_user_info(uchar user)
   55          {
-C51 COMPILER V9.01   MAIN                                                                  04/14/2019 14:59:13 PAGE 2   
+C51 COMPILER V9.01   MAIN                                                                  04/21/2019 20:21:18 PAGE 2   
 
-  56   1        static uint ds_index = 0;
-  57   1        TL0 = (65535-1000)%256; 
-  58   1        TH0 = (65535-1000)/256; 
-  59   1        ds_index++;
-  60   1        if(ds_index == 300)
-  61   1        {
-  62   2          ds_index = 0;
-  63   2          m_ds_flag = 1;
-  64   2        }
-  65   1        
-  66   1      }
+  56   1        uchar IicIndex = 0;
+  57   1        IicIndex = Read_2402(get_save_addres(user));
+  58   1        IicIndex++;
+  59   1        if(IicIndex == 3)
+  60   1          IicIndex = 0;
+  61   1        Write_2402(get_save_addres(user)+0, IicIndex);
+  62   1        Delay_ms(20);
+  63   1        Write_2402(get_save_addres(user)+1+IicIndex*7, Datebuf[0]);
+  64   1        Delay_ms(20);
+  65   1        Write_2402(get_save_addres(user)+2+IicIndex*7, Datebuf[1]);
+  66   1        Delay_ms(20);
+  67   1        Write_2402(get_save_addres(user)+3+IicIndex*7, Datebuf[2]);
+  68   1        Delay_ms(20);
+  69   1        Write_2402(get_save_addres(user)+4+IicIndex*7, timebuf[0]);
+  70   1        Delay_ms(20);
+  71   1        Write_2402(get_save_addres(user)+5+IicIndex*7, (uchar)((Weight_Shiwu&0xffff)>>8));
+  72   1        Delay_ms(20);
+  73   1        Write_2402(get_save_addres(user)+6+IicIndex*7, (uchar)(Weight_Shiwu&0xff));
+  74   1        Delay_ms(20);
+  75   1        DspSavenow(IicIndex);
+  76   1      }
+  77          
+  78          #if 0
+              void test(uchar temp)
+              {
+                uchar buf[7] = {1,1,1,1,1,1,1};
+                uchar index = 0;
+                uchar IicIndex = 0;
+                
+                IicIndex = Read_2402(get_save_addres(temp));
+                Delay_ms(20);
+                for(index = 0;index<7;index++)
+                {
+                  buf[index] = Read_2402(get_save_addres(temp)+index+IicIndex*7);
+                  Delay_ms(20);
+                }
+                lcd_pos(3,0);
+                for(index = 0;index<7;index++)
+                {
+                  lcd_wdat(buf[index]/10+'0');
+                  lcd_wdat(buf[index]%10+'0');
+                }
+              }
+              #endif
+ 100          
+ 101          void UserSaveWight(void)
+ 102          {
+ 103   1        uchar User = 1;
+ 104   1        uchar index = 0;
+ 105   1        DspUserMode();
+ 106   1        while(1)
+ 107   1        {
+ 108   2          index++;
+ 109   2          
+ 110   2          if(KEY1 == 0)
+ 111   2          {
+ 112   3            Delay_ms(20);
+ 113   3            if(KEY1 == 0)
+ 114   3            {
+ 115   4              while(KEY1 == 0);
+ 116   4              User++;
+ 117   4              if(User == 4)
+C51 COMPILER V9.01   MAIN                                                                  04/21/2019 20:21:18 PAGE 3   
+
+ 118   4              {
+ 119   5                DspClear();
+ 120   5                DspTimetip();
+ 121   5                break;
+ 122   5              }
+ 123   4            }
+ 124   3          }
+ 125   2          
+ 126   2          if(KEY2 == 0)
+ 127   2          {
+ 128   3            Delay_ms(20);
+ 129   3            if(KEY2 == 0)
+ 130   3            {
+ 131   4              while(KEY2 == 0);
+ 132   4              save_user_info(User);
+ 133   4              DspClear();
+ 134   4              DspTimetip();
+ 135   4              break;
+ 136   4            }
+ 137   3          }
+ 138   2          
+ 139   2          if(index == 200)
+ 140   2          {
+ 141   3            lcd_pos(1,4);
+ 142   3            lcd_wdat(User + '0');
+ 143   3            index = 0;
+ 144   3          }
+ 145   2        }
+ 146   1      }
+ 147          
+ 148          void CheakUserxInfo(uchar temp)
+ 149          {
+ 150   1        uchar buf[7] = {1,1,1,1,1,1,1};
+ 151   1        uchar buf1[3] = {0,0,0};
+ 152   1        uchar index = 0;
+ 153   1        char IicIndex = 0;
+ 154   1        
+ 155   1        for(index = 0;index<7;index++)
+ 156   1        {
+ 157   2          buf[index] = Read_2402(get_save_addres(temp)+index+IicIndex*7);
+ 158   2          Delay_ms(20);
+ 159   2        }
+ 160   1        DspUserxInfo(buf, temp, IicIndex);
+ 161   1        while(1)
+ 162   1        {
+ 163   2          if(KEY3 == 0)
+ 164   2          {
+ 165   3            Delay_ms(20);
+ 166   3            if(KEY3 == 0)
+ 167   3            {
+ 168   4              while(KEY3 == 0);
+ 169   4                IicIndex++;
+ 170   4              if(IicIndex == 3)
+ 171   4                IicIndex = 0;
+ 172   4              for(index = 0;index<7;index++)
+ 173   4              {
+ 174   5                buf[index] = Read_2402(get_save_addres(temp)+index+IicIndex*7);
+ 175   5                Delay_ms(20);
+ 176   5              }
+ 177   4              DspUserxInfo(buf, temp, IicIndex);
+ 178   4            }
+ 179   3          }
+C51 COMPILER V9.01   MAIN                                                                  04/21/2019 20:21:18 PAGE 4   
+
+ 180   2          
+ 181   2          if(KEY4 == 0)
+ 182   2          {
+ 183   3            Delay_ms(20);
+ 184   3            if(KEY4 == 0)
+ 185   3            {
+ 186   4              while(KEY4 == 0);
+ 187   4                IicIndex--;
+ 188   4              if(IicIndex == -1)
+ 189   4                IicIndex = 2;
+ 190   4              for(index = 0;index<7;index++)
+ 191   4              {
+ 192   5                buf[index] = Read_2402(get_save_addres(temp)+index+IicIndex*7);
+ 193   5                Delay_ms(20);
+ 194   5              }
+ 195   4              DspUserxInfo(buf, temp, IicIndex);
+ 196   4            }
+ 197   3          }
+ 198   2          if(KEY2 == 0)
+ 199   2          {
+ 200   3            Delay_ms(20);
+ 201   3            if(KEY2 == 0)
+ 202   3            {
+ 203   4              while(KEY2 == 0);
+ 204   4              break;
+ 205   4            }
+ 206   3          }
+ 207   2        }
+ 208   1      }
+ 209          
+ 210          void cheak_wight_mode(void)
+ 211          {
+ 212   1        uchar index = 0;
+ 213   1        uchar User = 1;
+ 214   1        DspUserCheak();
+ 215   1        while(1)
+ 216   1        {
+ 217   2          index++;
+ 218   2          if(index == 200)
+ 219   2          {
+ 220   3            lcd_pos(1,4);
+ 221   3            lcd_wdat(User + '0');
+ 222   3            index = 0;
+ 223   3          }
+ 224   2          
+ 225   2          if(KEY1 == 0)
+ 226   2          {
+ 227   3            Delay_ms(20);
+ 228   3            if(KEY1 == 0)
+ 229   3            {
+ 230   4              while(KEY1 == 0);
+ 231   4              User++;
+ 232   4              if(User == 4)
+ 233   4              {
+ 234   5                DspClear();
+ 235   5                DspTimetip();
+ 236   5                break;
+ 237   5              }
+ 238   4            }
+ 239   3          }
+ 240   2          
+ 241   2          if(KEY2 == 0)
+C51 COMPILER V9.01   MAIN                                                                  04/21/2019 20:21:18 PAGE 5   
+
+ 242   2          {
+ 243   3            Delay_ms(20);
+ 244   3            if(KEY2 == 0)
+ 245   3            {
+ 246   4              while(KEY2 == 0);
+ 247   4              CheakUserxInfo(User);
+ 248   4              DspClear();
+ 249   4              DspTimetip();
+ 250   4              break;
+ 251   4            }
+ 252   3          }
+ 253   2        }
+ 254   1      }
+ 255          
+ 256          void main(void)
+ 257          {
+ 258   1        global_driver_init();
+ 259   1        while(1)
+ 260   1        {
+ 261   2          if(m_ds_flag)
+ 262   2          {
+ 263   3            Ds1302_Date_read(Datebuf);
+ 264   3            Ds1302_time_read(timebuf);
+ 265   3            DspTime(Datebuf,timebuf);
+ 266   3            DspWeight();
+ 267   3            Get_Weight();
+ 268   3            LED8 =~ LED8;
+ 269   3            m_ds_flag = 0;
+ 270   3          }
+ 271   2          if(KEY1 == 0)
+ 272   2          {
+ 273   3            Delay_ms(10);
+ 274   3            if(KEY1 == 0)
+ 275   3            {
+ 276   4              while(KEY1 == 0);
+ 277   4              UserSaveWight();
+ 278   4            }
+ 279   3          }
+ 280   2          
+ 281   2          if(KEY2 == 0)
+ 282   2          {
+ 283   3            Delay_ms(10);
+ 284   3            if(KEY2 == 0)
+ 285   3            {
+ 286   4              while(KEY2 == 0);
+ 287   4              cheak_wight_mode();
+ 288   4            }
+ 289   3          }
+ 290   2        }
+ 291   1      }
+ 292          
+ 293          void Tim0(void) interrupt 1
+ 294          {
+ 295   1        static uint ds_index = 0;
+ 296   1        TL0 = (65535-1000)%256; 
+ 297   1        TH0 = (65535-1000)/256; 
+ 298   1        ds_index++;
+ 299   1        if(ds_index == 300)
+ 300   1        {
+ 301   2          ds_index = 0;
+ 302   2          m_ds_flag = 1;
+ 303   2        }
+C51 COMPILER V9.01   MAIN                                                                  04/21/2019 20:21:18 PAGE 6   
+
+ 304   1        
+ 305   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    230    ----
-   CONSTANT SIZE    =     12    ----
+   CODE SIZE        =   1013    ----
+   CONSTANT SIZE    =     30    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =      2      12
+   DATA SIZE        =      9      26
    IDATA SIZE       =   ----    ----
    BIT SIZE         =      1    ----
 END OF MODULE INFORMATION.

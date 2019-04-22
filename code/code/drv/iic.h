@@ -9,8 +9,8 @@
 #define SlaveAddrR 0xA1
 
 //总线引脚定义
-sbit SDA = P1^1;  /* 数据线 */
-sbit SCL = P1^0;  /* 时钟线 */
+sbit SDA = P1^5;  /* 数据线 */
+sbit SCL = P1^6;  /* 时钟线 */
 
 //函数声明
 void IIC_Start(void); 
@@ -21,5 +21,7 @@ bit IIC_WaitAck(void);
 unsigned char IIC_RecByte(void); 
 unsigned char Read_2402(unsigned char addr);
 void Write_2402(unsigned char addr,unsigned char dat);
+unsigned char Read_8951(void);
+
 
 #endif

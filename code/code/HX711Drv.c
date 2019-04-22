@@ -2,7 +2,6 @@
 
 #define GapValue 437
 sbit Buzzer = P2^3;
-sbit LED = P1^0;
 
 unsigned long HX711_Buffer = 0;
 unsigned long Weight_Maopi = 0;

@@ -105,6 +105,9 @@ void lcd_pos(uchar X,uchar Y)
      {X=0x98;}
    pos = X+Y ;  
    lcd_wcmd(pos);     //显示地址
+    	delayNOP();
+	delayNOP();
+	delayNOP();
 }
 
 
@@ -134,6 +137,7 @@ void DisplayString(uchar x, uchar y, uchar* String)
 	while( *String != '\0')
 	{
 		lcd_wdat(*String);
+		delay(1);				//应为没有读忙函数，所以延时需要久一点
 		String++;
 	}
 }
